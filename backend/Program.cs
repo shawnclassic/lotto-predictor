@@ -88,28 +88,37 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        var allowedOrigins = new List<string>
+        if (builder.Environment.IsDevelopment())
         {
-            "http://localhost:3000",
-            "http://localhost:8080",
-            "http://localhost:5173", // Vite default port
-            "https://localhost:3000",
-            "https://localhost:8080",
-            "https://localhost:5173"
-        };
-
-        // Add environment-specific frontend URL
-        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
-        if (!string.IsNullOrEmpty(frontendUrl))
-        {
-            allowedOrigins.Add(frontendUrl);
+            // In development, allow all origins for easier testing
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
         }
+        else
+        {
+            var allowedOrigins = new List<string>
+            {
+                "http://localhost:3000",
+                "http://localhost:8080",
+                "http://localhost:5173", // Vite default port
+                "https://localhost:3000",
+                "https://localhost:8080",
+                "https://localhost:5173"
+            };
 
-        policy.WithOrigins(allowedOrigins.ToArray())
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials()
-            .SetIsOriginAllowedToAllowWildcardSubdomains();
+            // Add environment-specific frontend URL
+            var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+            if (!string.IsNullOrEmpty(frontendUrl))
+            {
+                allowedOrigins.Add(frontendUrl);
+            }
+
+            policy.WithOrigins(allowedOrigins.ToArray())
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        }
     });
 });
 
@@ -195,7 +204,11 @@ app.Use(async (context, next) =>
     }
 });
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection in production
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("AllowFrontend");
 app.UseRouting();
 app.UseAuthorization();

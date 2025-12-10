@@ -108,7 +108,7 @@ public class LottoImportService : ILottoImportService
                     continue;
                 }
 
-                // Set timestamps
+                // Set timestamps (ensure UTC)
                 draw.CreatedAt = DateTime.UtcNow;
                 draw.UpdatedAt = DateTime.UtcNow;
 

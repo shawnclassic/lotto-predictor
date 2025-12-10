@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -35,9 +35,7 @@ namespace PredictLottoNZ.Migrations
             migrationBuilder.AddColumn<decimal>(
                 name: "Division7Prize",
                 table: "LottoDraws",
-                type: "numeric(18,2)",
-                precision: 18,
-                scale: 2,
+                type: "numeric",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(

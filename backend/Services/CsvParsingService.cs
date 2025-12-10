@@ -283,14 +283,16 @@ public class CsvParsingService : ICsvParsingService
         {
             if (DateTime.TryParseExact(value, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
             {
-                return result;
+                // Convert to UTC for PostgreSQL compatibility
+                return DateTime.SpecifyKind(result, DateTimeKind.Utc);
             }
         }
 
         // Fallback to general parsing
         if (DateTime.TryParse(value, out var fallbackResult))
         {
-            return fallbackResult;
+            // Convert to UTC for PostgreSQL compatibility
+            return DateTime.SpecifyKind(fallbackResult, DateTimeKind.Utc);
         }
 
         throw new FormatException($"Unable to parse date: {value}");

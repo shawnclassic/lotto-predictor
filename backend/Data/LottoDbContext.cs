@@ -43,6 +43,8 @@ public class LottoDbContext : DbContext
                   .HasPrecision(18, 2);
             entity.Property(e => e.Division6Prize)
                   .HasPrecision(18, 2);
+            entity.Property(e => e.Division7Prize)
+                  .HasPrecision(18, 2);
         });
         
         // Configure NumberCombination entity

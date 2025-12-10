@@ -319,7 +319,7 @@ public static class ConfigurationManagementPropertyTest
         var users = new[] { "postgres", "lotto_user", "admin", "app_user" };
         
         var host = hosts[random.Next(hosts.Length)];
-        var port = random.Next(5432, 5440);
+        var port = random.Next(5434, 5440);
         var database = databases[random.Next(databases.Length)];
         var user = users[random.Next(users.Length)];
         var password = GenerateRandomString(random, 8, 16);

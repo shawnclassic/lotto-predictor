@@ -136,11 +136,30 @@ namespace PredictLottoNZ.Migrations
                     b.Property<int?>("Division6Winners")
                         .HasColumnType("integer");
 
+                    b.Property<decimal?>("Division7Prize")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int?>("Division7Winners")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("ElevenToTwenty")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Even")
                         .HasColumnType("integer");
 
                     b.Property<string>("FromLast")
                         .HasColumnType("text");
+
+                    b.Property<int?>("High")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Low")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Odd")
+                        .HasColumnType("integer");
 
                     b.Property<int?>("OneToTen")
                         .HasColumnType("integer");

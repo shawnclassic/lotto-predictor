@@ -206,7 +206,7 @@ public class LottoImportService : ILottoImportService
         var prizeFields = new[]
         {
             draw.Division1Prize, draw.Division2Prize, draw.Division3Prize,
-            draw.Division4Prize, draw.Division5Prize, draw.Division6Prize
+            draw.Division4Prize, draw.Division5Prize, draw.Division6Prize, draw.Division7Prize
         };
 
         foreach (var prize in prizeFields.Where(p => p.HasValue))
@@ -222,7 +222,7 @@ public class LottoImportService : ILottoImportService
         var winnerFields = new[]
         {
             draw.Division1Winners, draw.Division2Winners, draw.Division3Winners,
-            draw.Division4Winners, draw.Division5Winners, draw.Division6Winners
+            draw.Division4Winners, draw.Division5Winners, draw.Division6Winners, draw.Division7Winners
         };
 
         foreach (var winners in winnerFields.Where(w => w.HasValue))

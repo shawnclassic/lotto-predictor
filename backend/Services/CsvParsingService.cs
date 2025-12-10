@@ -34,6 +34,10 @@ public class CsvParsingService : ICsvParsingService
         { "Nov-20", "ElevenToTwenty" },
         { "21-30", "TwentyOneToThirty" },
         { "31-40", "ThirtyOneToForty" },
+        { "Low", "Low" },
+        { "High", "High" },
+        { "Odd", "Odd" },
+        { "Even", "Even" },
         
         // Prize division mappings
         { "Division 1 Prize", "Division1Prize" },
@@ -47,7 +51,9 @@ public class CsvParsingService : ICsvParsingService
         { "Division 5 Prize", "Division5Prize" },
         { "Division 5 Winners", "Division5Winners" },
         { "Division 6 Prize", "Division6Prize" },
-        { "Division 6 Winners", "Division6Winners" }
+        { "Division 6 Winners", "Division6Winners" },
+        { "Division 7 Prize", "Division7Prize" },
+        { "Division 7 Winners", "Division7Winners" }
     };
 
     public CsvParsingService(ILogger<CsvParsingService> logger)

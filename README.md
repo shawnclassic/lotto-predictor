@@ -82,7 +82,7 @@ graph TB
    BACKEND_PORT=5000
    FRONTEND_PORT=3000
    PREDICTOR_PORT=8000
-   POSTGRES_PORT=5432
+   POSTGRES_PORT=5434
    
    # Optional: AI Services
    OPENAI_API_KEY=your_openai_api_key
@@ -115,7 +115,7 @@ graph TB
    - **API Documentation**: http://localhost:5000/swagger
    - **Predictor Service**: http://localhost:8000
    - **Predictor Docs**: http://localhost:8000/docs
-   - **Database**: localhost:5432
+   - **Database**: localhost:5434
 
 ### Option 2: Local Development Setup
 
@@ -154,7 +154,7 @@ graph TB
 | `POSTGRES_PASSWORD` | ✅ | - | PostgreSQL database password |
 | `POSTGRES_DB` | ❌ | `predict_lotto_nz` | Database name |
 | `POSTGRES_USER` | ❌ | `postgres` | Database username |
-| `POSTGRES_PORT` | ❌ | `5432` | Database port |
+| `POSTGRES_PORT` | ❌ | `5434` | Database port |
 
 ### Service Ports
 | Variable | Required | Default | Description |
@@ -356,7 +356,7 @@ predict-lotto-nz/
 - `GET /docs` - API documentation
 
 ### Database (PostgreSQL)
-**Port**: 5432 | **Health Check**: Built-in
+**Port**: 5434 | **Health Check**: Built-in
 
 **Features**:
 - Stores historical lottery draws with full metadata
@@ -426,7 +426,7 @@ All services include comprehensive health checks:
 | Backend | `/api/health` | 5000 | Application health |
 | Frontend | `/health` | 3000 | Nginx status |
 | Predictor | `/health` | 8000 | Service health |
-| Database | Built-in | 5432 | PostgreSQL ready |
+| Database | Built-in | 5434 | PostgreSQL ready |
 
 ### Monitoring Commands
 ```bash
@@ -519,7 +519,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 netstat -tulpn | grep :3000
 netstat -tulpn | grep :5000
 netstat -tulpn | grep :8000
-netstat -tulpn | grep :5432
+netstat -tulpn | grep :5434
 
 # Kill processes using required ports
 sudo kill -9 $(lsof -t -i:3000)

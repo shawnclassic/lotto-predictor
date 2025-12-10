@@ -1,0 +1,186 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PredictLottoNZ.Tests;
+
+[Table("LottoDraws")]
+public class LottoDraw
+{
+    [Key]
+    public int Draw { get; set; }
+    
+    [Required]
+    public DateTime Date { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int WinningNumber1 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int WinningNumber2 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int WinningNumber3 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int WinningNumber4 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int WinningNumber5 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int WinningNumber6 { get; set; }
+    
+    [Required]
+    [Range(1, 10)]
+    public int BonusNumber { get; set; }
+    
+    [Required]
+    [Range(1, 10)]
+    public int Powerball { get; set; }
+    
+    public string? FromLast { get; set; }
+    
+    // Statistical fields based on CSV structure
+    public int? OneToTen { get; set; }
+    public int? ElevenToTwenty { get; set; }
+    public int? TwentyOneToThirty { get; set; }
+    public int? ThirtyOneToForty { get; set; }
+    
+    // Prize division fields
+    public decimal? Division1Prize { get; set; }
+    public int? Division1Winners { get; set; }
+    public decimal? Division2Prize { get; set; }
+    public int? Division2Winners { get; set; }
+    public decimal? Division3Prize { get; set; }
+    public int? Division3Winners { get; set; }
+    public decimal? Division4Prize { get; set; }
+    public int? Division4Winners { get; set; }
+    public decimal? Division5Prize { get; set; }
+    public int? Division5Winners { get; set; }
+    public decimal? Division6Prize { get; set; }
+    public int? Division6Winners { get; set; }
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+[Table("NumberCombinations")]
+public class NumberCombination
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number1 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number2 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number3 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number4 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number5 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number6 { get; set; }
+    
+    [Required]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    // Helper method to get numbers as array
+    public int[] GetNumbers() => new[] { Number1, Number2, Number3, Number4, Number5, Number6 };
+    
+    // Helper method to set numbers from array
+    public void SetNumbers(int[] numbers)
+    {
+        if (numbers?.Length != 6)
+            throw new ArgumentException("Must provide exactly 6 numbers", nameof(numbers));
+            
+        Number1 = numbers[0];
+        Number2 = numbers[1];
+        Number3 = numbers[2];
+        Number4 = numbers[3];
+        Number5 = numbers[4];
+        Number6 = numbers[5];
+    }
+}
+
+[Table("Predictions")]
+public class Prediction
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Required]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    [Required]
+    [MaxLength(100)]
+    public string Source { get; set; } = string.Empty;
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number1 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number2 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number3 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number4 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number5 { get; set; }
+    
+    [Required]
+    [Range(1, 40)]
+    public int Number6 { get; set; }
+    
+    public double? Score { get; set; }
+    
+    // Store raw request/response payloads for training data
+    [Column(TypeName = "text")]
+    public string? RawRequestPayload { get; set; }
+    
+    [Column(TypeName = "text")]
+    public string? RawResponsePayload { get; set; }
+    
+    // Helper method to get numbers as array
+    public int[] GetNumbers() => new[] { Number1, Number2, Number3, Number4, Number5, Number6 };
+    
+    // Helper method to set numbers from array
+    public void SetNumbers(int[] numbers)
+    {
+        if (numbers?.Length != 6)
+            throw new ArgumentException("Must provide exactly 6 numbers", nameof(numbers));
+            
+        Number1 = numbers[0];
+        Number2 = numbers[1];
+        Number3 = numbers[2];
+        Number4 = numbers[3];
+        Number5 = numbers[4];
+        Number6 = numbers[5];
+    }
+}

@@ -1,0 +1,52 @@
+# Development overrides for docker-compose.yml
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./scripts/dev-data.sql:/docker-entrypoint-initdb.d/dev-data.sql
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+    volumes:
+      - ./backend:/app
+      - /app/bin
+      - /app/obj
+    ports:
+      - "5000:80"
+      - "5001:443"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      NODE_ENV: development
+      VUE_APP_API_BASE_URL: http://localhost:5000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:8080"
+
+  predictor:
+    build:
+      context: ./predictor
+      dockerfile: Dockerfile.dev
+    environment:
+      PYTHONPATH: /app
+      FASTAPI_ENV: development
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - ./predictor:/app
+    ports:
+      - "8000:8000"

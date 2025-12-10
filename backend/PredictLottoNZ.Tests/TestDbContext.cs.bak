@@ -1,0 +1,100 @@
+using Microsoft.EntityFrameworkCore;
+
+namespace PredictLottoNZ.Tests;
+
+public class TestLottoDbContext : DbContext
+{
+    public TestLottoDbContext(DbContextOptions<TestLottoDbContext> options) : base(options)
+    {
+    }
+    
+    public DbSet<LottoDraw> LottoDraws { get; set; } = null!;
+    public DbSet<NumberCombination> NumberCombinations { get; set; } = null!;
+    public DbSet<Prediction> Predictions { get; set; } = null!;
+    
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        
+        // Configure LottoDraw entity
+        modelBuilder.Entity<LottoDraw>(entity =>
+        {
+            entity.HasKey(e => e.Draw);
+            
+            // Create indexes for common queries
+            entity.HasIndex(e => e.Date)
+                  .HasDatabaseName("IX_LottoDraws_Date");
+                  
+            entity.HasIndex(e => e.CreatedAt)
+                  .HasDatabaseName("IX_LottoDraws_CreatedAt");
+            
+            // Configure decimal precision for prize fields
+            entity.Property(e => e.Division1Prize)
+                  .HasPrecision(18, 2);
+            entity.Property(e => e.Division2Prize)
+                  .HasPrecision(18, 2);
+            entity.Property(e => e.Division3Prize)
+                  .HasPrecision(18, 2);
+            entity.Property(e => e.Division4Prize)
+                  .HasPrecision(18, 2);
+            entity.Property(e => e.Division5Prize)
+                  .HasPrecision(18, 2);
+            entity.Property(e => e.Division6Prize)
+                  .HasPrecision(18, 2);
+        });
+        
+        // Configure NumberCombination entity
+        modelBuilder.Entity<NumberCombination>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Create index for timestamp queries
+            entity.HasIndex(e => e.CreatedAt)
+                  .HasDatabaseName("IX_NumberCombinations_CreatedAt");
+                  
+            // Create composite index for duplicate detection
+            entity.HasIndex(e => new { e.Number1, e.Number2, e.Number3, e.Number4, e.Number5, e.Number6 })
+                  .HasDatabaseName("IX_NumberCombinations_Numbers");
+        });
+        
+        // Configure Prediction entity
+        modelBuilder.Entity<Prediction>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Create indexes for common queries
+            entity.HasIndex(e => e.CreatedAt)
+                  .HasDatabaseName("IX_Predictions_CreatedAt");
+                  
+            entity.HasIndex(e => e.Source)
+                  .HasDatabaseName("IX_Predictions_Source");
+                  
+            // Create composite index for number queries
+            entity.HasIndex(e => new { e.Number1, e.Number2, e.Number3, e.Number4, e.Number5, e.Number6 })
+                  .HasDatabaseName("IX_Predictions_Numbers");
+        });
+    }
+    
+    public override int SaveChanges()
+    {
+        UpdateTimestamps();
+        return base.SaveChanges();
+    }
+    
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        UpdateTimestamps();
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+    
+    private void UpdateTimestamps()
+    {
+        var entries = ChangeTracker.Entries<LottoDraw>()
+            .Where(e => e.State == EntityState.Modified);
+            
+        foreach (var entry in entries)
+        {
+            entry.Entity.UpdatedAt = DateTime.UtcNow;
+        }
+    }
+}

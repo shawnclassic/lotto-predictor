@@ -1,0 +1,221 @@
+using Microsoft.EntityFrameworkCore;
+using PredictLottoNZ.Data;
+using PredictLottoNZ.Services;
+using System.Text.Json.Serialization;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
+// Add services to the container.
+builder.Services.AddControllers(options =>
+{
+    // Configure global model validation
+    options.SuppressAsyncSuffixInActionNames = false;
+})
+.AddJsonOptions(options =>
+{
+    // Configure JSON serialization
+    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    options.JsonSerializerOptions.WriteIndented = builder.Environment.IsDevelopment();
+});
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "PredictLottoNZ API", Version = "v1" });
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "PredictLottoNZ.xml"), true);
+});
+
+// Configure Entity Framework with PostgreSQL
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+builder.Services.AddDbContext<LottoDbContext>(options =>
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorCodesToAdd: null);
+    }));
+
+// Register database services
+builder.Services.AddScoped<IDatabaseInitializationService, DatabaseInitializationService>();
+builder.Services.AddScoped<IDatabaseSeedingService, DatabaseSeedingService>();
+
+// Register CSV parsing and import services
+builder.Services.AddScoped<ICsvParsingService, CsvParsingService>();
+builder.Services.AddScoped<ILottoImportService, LottoImportService>();
+
+// Register query services
+builder.Services.AddScoped<ILottoQueryService, LottoQueryService>();
+
+// Register file parsing and combination services
+builder.Services.AddScoped<IFileParsingService, FileParsingService>();
+builder.Services.AddScoped<ICombinationService, CombinationService>();
+
+// Register frequency calculation and prediction services
+builder.Services.AddMemoryCache(); // Add memory cache for frequency caching
+builder.Services.AddScoped<IFrequencyCalculationService, FrequencyCalculationService>();
+
+// Register prediction providers in priority order
+builder.Services.AddScoped<IPredictionProvider, AwsLlmPredictionProvider>();
+builder.Services.AddHttpClient<FastApiPredictionProvider>(); // Register HttpClient for FastAPI provider
+builder.Services.Configure<FastApiPredictionProviderOptions>(options =>
+{
+    options.BaseUrl = Environment.GetEnvironmentVariable("FASTAPI_BASE_URL") ?? "http://localhost:8001";
+    options.TimeoutSeconds = int.TryParse(Environment.GetEnvironmentVariable("FASTAPI_TIMEOUT_SECONDS"), out var timeout) ? timeout : 30;
+    options.MaxRetries = int.TryParse(Environment.GetEnvironmentVariable("FASTAPI_MAX_RETRIES"), out var retries) ? retries : 3;
+    options.RetryDelayMs = int.TryParse(Environment.GetEnvironmentVariable("FASTAPI_RETRY_DELAY_MS"), out var delay) ? delay : 1000;
+});
+builder.Services.AddScoped<IPredictionProvider, FastApiPredictionProvider>();
+builder.Services.AddScoped<IPredictionProvider, FrequencyPredictionProvider>();
+
+// Register main prediction service
+builder.Services.AddScoped<IPredictionService, PredictionService>();
+
+// Register training data service for comprehensive data preservation
+builder.Services.AddScoped<ITrainingDataService, TrainingDataService>();
+
+// Configure CORS for frontend integration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        var allowedOrigins = new List<string>
+        {
+            "http://localhost:3000",
+            "http://localhost:8080",
+            "http://localhost:5173", // Vite default port
+            "https://localhost:3000",
+            "https://localhost:8080",
+            "https://localhost:5173"
+        };
+
+        // Add environment-specific frontend URL
+        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+        if (!string.IsNullOrEmpty(frontendUrl))
+        {
+            allowedOrigins.Add(frontendUrl);
+        }
+
+        policy.WithOrigins(allowedOrigins.ToArray())
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .SetIsOriginAllowedToAllowWildcardSubdomains();
+    });
+});
+
+// Configure request size limits
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
+});
+
+// Configure Kestrel server options
+builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "PredictLottoNZ API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+else
+{
+    app.UseExceptionHandler("/error");
+    app.UseHsts();
+}
+
+// Add request logging middleware
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    var startTime = DateTime.UtcNow;
+    
+    logger.LogInformation("Request {Method} {Path} started at {StartTime}", 
+        context.Request.Method, context.Request.Path, startTime);
+    
+    try
+    {
+        await next();
+        
+        var duration = DateTime.UtcNow - startTime;
+        logger.LogInformation("Request {Method} {Path} completed in {Duration}ms with status {StatusCode}", 
+            context.Request.Method, context.Request.Path, duration.TotalMilliseconds, context.Response.StatusCode);
+    }
+    catch (Exception ex)
+    {
+        var duration = DateTime.UtcNow - startTime;
+        logger.LogError(ex, "Request {Method} {Path} failed after {Duration}ms", 
+            context.Request.Method, context.Request.Path, duration.TotalMilliseconds);
+        throw;
+    }
+});
+
+// Add global error handling middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Unhandled exception occurred");
+        
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        
+        var response = new
+        {
+            error = "An internal server error occurred",
+            requestId = context.TraceIdentifier
+        };
+        
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+    }
+});
+
+app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
+app.UseRouting();
+app.UseAuthorization();
+app.MapControllers();
+
+// Add health check endpoint
+app.MapGet("/health", () => new { status = "healthy", timestamp = DateTime.UtcNow });
+
+// Initialize database with retry logic
+using (var scope = app.Services.CreateScope())
+{
+    var databaseInitService = scope.ServiceProvider.GetRequiredService<IDatabaseInitializationService>();
+    await databaseInitService.InitializeAsync();
+    
+    // Seed database in development environment
+    if (app.Environment.IsDevelopment())
+    {
+        var seedingService = scope.ServiceProvider.GetRequiredService<IDatabaseSeedingService>();
+        await seedingService.SeedAsync();
+    }
+}
+
+app.Run();

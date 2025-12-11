@@ -190,10 +190,10 @@ public class LottoImportService : ILottoImportService
             errors.Add("Winning numbers must be unique");
         }
 
-        // Validate bonus number (1-10 range)
-        if (draw.BonusNumber < 1 || draw.BonusNumber > 10)
+        // Validate bonus number (1-40 range)
+        if (draw.BonusNumber < 1 || draw.BonusNumber > 40)
         {
-            errors.Add("Bonus number must be between 1 and 10");
+            errors.Add("Bonus number must be between 1 and 40");
         }
 
         // Validate powerball (1-10 range)

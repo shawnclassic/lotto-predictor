@@ -37,7 +37,7 @@ public class LottoDraw
     public int WinningNumber6 { get; set; }
     
     [Required]
-    [Range(1, 10)]
+    [Range(1, 40)]
     public int BonusNumber { get; set; }
     
     [Required]

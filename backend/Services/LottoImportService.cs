@@ -40,8 +40,8 @@ public class LottoImportService : ILottoImportService
             
             if (!drawsList.Any())
             {
-                _logger.LogWarning("No valid draws found in CSV file");
-                result.Errors.Add("No valid lottery draws found in the CSV file");
+                _logger.LogWarning("No valid draws found in CSV file after parsing");
+                result.Errors.Add("No valid lottery draws found in the CSV file. Please check the file format and ensure it contains the required columns: Draw, Date, WinningNumber1-6, BonusNumber, Powerball");
                 return result;
             }
 

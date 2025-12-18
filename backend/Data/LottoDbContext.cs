@@ -13,6 +13,14 @@ public class LottoDbContext : DbContext
     public DbSet<NumberCombination> NumberCombinations { get; set; } = null!;
     public DbSet<Prediction> Predictions { get; set; } = null!;
     public DbSet<ExternalServiceCallLog> ExternalServiceCallLogs { get; set; } = null!;
+    public DbSet<NumberFrequency> NumberFrequencies { get; set; } = null!;
+    public DbSet<NumberOccurrence> NumberOccurrences { get; set; } = null!;
+    public DbSet<ExportJob> ExportJobs { get; set; } = null!;
+    public DbSet<SearchConfiguration> SearchConfigurations { get; set; } = null!;
+    public DbSet<Bookmark> Bookmarks { get; set; } = null!;
+    public DbSet<TrainingRun> TrainingRuns { get; set; } = null!;
+    public DbSet<ModelVersion> ModelVersions { get; set; } = null!;
+    public DbSet<PredictionAccuracy> PredictionAccuracies { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

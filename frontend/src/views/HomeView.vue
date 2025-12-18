@@ -35,11 +35,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import FileUpload from '@/components/FileUpload.vue'
 import LatestDraw from '@/components/LatestDraw.vue'
 import { useAppStore } from '@/stores/app'
 
+const route = useRoute()
 const appStore = useAppStore()
 const latestDrawRef = ref()
 
@@ -49,7 +51,7 @@ const handleUploadSuccess = (data: any) => {
   
   // Refresh latest draw after successful upload
   if (latestDrawRef.value) {
-    latestDrawRef.value.refreshLatestDraw()
+    latestDrawRef.value.refreshDraw()
   }
 }
 
@@ -60,8 +62,35 @@ const handleUploadError = (error: { fileName: string; error: string }) => {
 
 // Handle draw loaded
 const handleDrawLoaded = (draw: any) => {
-  console.log('Latest draw loaded:', draw)
+  console.log('Draw loaded:', draw)
 }
+
+// Handle navigation to specific draw from query parameter
+const handleDrawNavigation = () => {
+  const drawNumber = route.query.draw
+  if (drawNumber && latestDrawRef.value) {
+    const drawNum = parseInt(drawNumber as string)
+    if (!isNaN(drawNum)) {
+      // Scroll to the latest draw section
+      setTimeout(() => {
+        const latestElement = document.getElementById('latest')
+        if (latestElement) {
+          latestElement.scrollIntoView({ behavior: 'smooth' })
+        }
+        // Navigate to the specific draw
+        latestDrawRef.value.goToDraw(drawNum)
+      }, 100)
+    }
+  }
+}
+
+// Watch for route changes
+watch(() => route.query.draw, handleDrawNavigation)
+
+// Handle navigation on mount
+onMounted(() => {
+  handleDrawNavigation()
+})
 </script>
 
 <style scoped>

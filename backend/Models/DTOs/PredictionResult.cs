@@ -6,6 +6,8 @@ public class PredictionResult
     public double Score { get; set; }
     public string Source { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public double? ConfidenceScore { get; set; }
+    public string ReasoningExplanation { get; set; } = string.Empty;
     
     public static PredictionResult FromEntity(Prediction prediction)
     {
@@ -14,7 +16,9 @@ public class PredictionResult
             Numbers = prediction.GetNumbers(),
             Score = prediction.Score ?? 0,
             Source = prediction.Source,
-            CreatedAt = prediction.CreatedAt
+            CreatedAt = prediction.CreatedAt,
+            ConfidenceScore = prediction.ConfidenceScore,
+            ReasoningExplanation = prediction.ReasoningExplanation
         };
     }
 }

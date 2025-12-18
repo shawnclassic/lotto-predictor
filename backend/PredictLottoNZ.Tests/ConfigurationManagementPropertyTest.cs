@@ -156,7 +156,7 @@ public static class ConfigurationManagementPropertyTest
         else
         {
             // Should use default value
-            var defaultUrl = "http://localhost:8001";
+            // var defaultUrl = ... // Removed unused variable
             // In actual implementation, this would be handled by the configuration logic
         }
         
@@ -371,3 +371,5 @@ public static class ConfigurationManagementPropertyTest
         public Dictionary<string, string> EnvironmentVariables { get; set; } = new();
     }
 }
+
+

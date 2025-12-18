@@ -52,7 +52,7 @@
       </div>
       
       <div v-if="predictions.length === 0 && !isLoading" class="no-predictions">
-        <p>No predictions generated yet. Click "Generate Predictions" to get started.</p>
+        <p>No predictions loaded. Click "Generate New" to create fresh predictions or "Load Stored" to view previously generated ones.</p>
       </div>
       
       <div v-if="isLoading" class="loading-state">
@@ -147,10 +147,10 @@ const loadStoredPredictions = async () => {
   }
 }
 
-// Load predictions on component mount
+// Component mounted - no automatic loading
 onMounted(() => {
-  // Try to load stored predictions first, if none available, user can generate new ones
-  loadStoredPredictions()
+  // Don't automatically load predictions - wait for user action
+  // User can click "Generate New" or "Load Stored" buttons
 })
 </script>
 

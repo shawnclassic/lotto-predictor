@@ -28,7 +28,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "PredictLottoNZ API", Version = "v1" });
-    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "PredictLottoNZ.xml"), true);
+    // c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "PredictLottoNZ.xml"), true);
 });
 
 // Configure Entity Framework with PostgreSQL

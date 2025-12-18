@@ -26,15 +26,15 @@
           </RouterLink>
         </li>
         <li>
+          <RouterLink to="/draws" @click="closeMenu" class="menu-link">
+            <span class="menu-icon">🎲</span>
+            Draws
+          </RouterLink>
+        </li>
+        <li>
           <a href="#upload" @click="scrollToUpload" class="menu-link">
             <span class="menu-icon">📁</span>
             Upload Data
-          </a>
-        </li>
-        <li>
-          <a href="#latest" @click="scrollToLatest" class="menu-link">
-            <span class="menu-icon">🎲</span>
-            Latest Draw
           </a>
         </li>
       </ul>

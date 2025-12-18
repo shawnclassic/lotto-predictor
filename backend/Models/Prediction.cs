@@ -42,6 +42,13 @@ public class Prediction
     
     public double? Score { get; set; }
     
+    public double? ConfidenceScore { get; set; }
+    
+    [Column(TypeName = "text")]
+    public string ReasoningExplanation { get; set; } = string.Empty;
+    
+    public DateTime? TargetDrawDate { get; set; }
+    
     // Store raw request/response payloads for training data
     [Column(TypeName = "text")]
     public string? RawRequestPayload { get; set; }

@@ -195,3 +195,4 @@ public static class SimpleCsvParsingTest
         public List<MainModels.LottoDraw> ExpectedDraws { get; set; } = new();
     }
 }
+

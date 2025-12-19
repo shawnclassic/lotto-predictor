@@ -4,6 +4,8 @@
       <h1>Lottery Draws</h1>
     </div>
 
+
+
     <div v-if="draws.length > 0" class="draws-content">
       <!-- Top Pagination Controls -->
       <div class="pagination-controls top-pagination">
@@ -168,6 +170,7 @@ import { ref, onMounted, computed } from 'vue'
 import api from '@/services/api'
 import { useAppStore } from '@/stores/app'
 
+
 interface DrawData {
   draw: number
   date: string
@@ -291,6 +294,8 @@ const formatDate = (dateString: string): string => {
   })
 }
 
+
+
 // Load draws on component mount
 onMounted(() => {
   loadDraws()
@@ -318,6 +323,8 @@ onMounted(() => {
   margin: 0;
   font-size: 2rem;
 }
+
+
 
 .header-controls {
   display: flex;
@@ -632,6 +639,8 @@ onMounted(() => {
   .header-controls {
     justify-content: center;
   }
+  
+
   
   .draws-table th,
   .draws-table td {

@@ -1,3 +1,5 @@
+using PredictLottoNZ.Models;
+
 namespace PredictLottoNZ.Models.DTOs;
 
 public class PredictionResult

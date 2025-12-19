@@ -4,8 +4,12 @@ using PredictLottoNZ.Services;
 
 namespace PredictLottoNZ.Controllers;
 
+/// <summary>
+/// Controller for managing lottery draw data and historical information
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class LottoController : ControllerBase
 {
     private readonly ILottoImportService _importService;

@@ -278,3 +278,44 @@ public class ProgressUpdate
     public bool HasError { get; set; }
     public string? ErrorMessage { get; set; }
 }
+
+/// <summary>
+/// Pagination request for prediction operations
+/// </summary>
+public class PredictionPaginationRequest : SortedPaginationRequest
+{
+    /// <summary>
+    /// Filter by prediction source
+    /// </summary>
+    public string? Source { get; set; }
+
+    /// <summary>
+    /// Start date filter (predictions created after this date)
+    /// </summary>
+    public DateTime? StartDate { get; set; }
+
+    /// <summary>
+    /// End date filter (predictions created before this date)
+    /// </summary>
+    public DateTime? EndDate { get; set; }
+
+    /// <summary>
+    /// Filter by target draw date
+    /// </summary>
+    public DateTime? TargetDrawDate { get; set; }
+
+    /// <summary>
+    /// Minimum confidence score filter
+    /// </summary>
+    public double? MinConfidenceScore { get; set; }
+
+    /// <summary>
+    /// Maximum confidence score filter
+    /// </summary>
+    public double? MaxConfidenceScore { get; set; }
+
+    /// <summary>
+    /// Include predictions with reasoning explanation
+    /// </summary>
+    public bool? HasReasoningExplanation { get; set; }
+}

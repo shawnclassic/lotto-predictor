@@ -48,6 +48,24 @@ graph TB
 
 ### Required for Local Development
 - **.NET SDK**: Version 6.0 or higher
+
+## 📚 API Documentation
+
+The backend API includes comprehensive Swagger/OpenAPI documentation for easy testing and exploration of all available endpoints.
+
+### Accessing Swagger UI
+- **Local Development**: http://localhost:5001/swagger
+- **Docker Development**: http://localhost:5000/swagger
+- **Root Redirect**: In development, visiting the root URL (/) automatically redirects to Swagger
+- **Production**: Swagger UI is disabled in production for security reasons
+
+### Features
+- **Interactive Testing**: Test all API endpoints directly from the browser (development only)
+- **Comprehensive Documentation**: Detailed parameter descriptions and response examples
+- **Authentication Support**: Test secured endpoints with JWT tokens
+- **Development Environment**: Available only in development mode for security
+
+For detailed API documentation, see [docs/SWAGGER.md](docs/SWAGGER.md)
 - **Node.js**: Version 18 or higher with npm
 - **Python**: Version 3.11 or higher with pip
 - **PostgreSQL**: Version 15 or higher (optional, can use Docker)

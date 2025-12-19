@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +27,9 @@
     <PackageReference Include="FsCheck.Xunit" Version="2.16.6" />
     <PackageReference Include="Moq" Version="4.20.70" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
   </ItemGroup>
 
   <ItemGroup>

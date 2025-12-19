@@ -105,6 +105,32 @@ public class LottoDbContext : DbContext
             entity.HasIndex(e => new { e.ServiceName, e.CreatedAt })
                   .HasDatabaseName("IX_ExternalServiceCallLogs_ServiceName_CreatedAt");
         });
+        
+        // Configure NumberOccurrence entity
+        modelBuilder.Entity<NumberOccurrence>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Configure the relationship between NumberOccurrence and LottoDraw
+            entity.HasOne(e => e.Draw)
+                  .WithMany()
+                  .HasForeignKey(e => e.DrawNumber)
+                  .HasPrincipalKey(d => d.Draw)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            // Create indexes for common queries
+            entity.HasIndex(e => e.DrawNumber)
+                  .HasDatabaseName("IX_NumberOccurrences_DrawNumber");
+                  
+            entity.HasIndex(e => e.Number)
+                  .HasDatabaseName("IX_NumberOccurrences_Number");
+                  
+            entity.HasIndex(e => e.DrawDate)
+                  .HasDatabaseName("IX_NumberOccurrences_DrawDate");
+                  
+            entity.HasIndex(e => new { e.Number, e.DrawDate })
+                  .HasDatabaseName("IX_NumberOccurrences_Number_DrawDate");
+        });
     }
     
     public override int SaveChanges()

@@ -42,8 +42,10 @@ public class CsvParsingService : ICsvParsingService
         { "FromLast", "FromLast" },
         
         // Statistical interval mappings - support multiple formats
+        { "1-10", "OneToTen" },
         { "1-Oct", "OneToTen" },
         { "OneToTen", "OneToTen" },
+        { "11-20", "ElevenToTwenty" },
         { "Nov-20", "ElevenToTwenty" },
         { "ElevenToTwenty", "ElevenToTwenty" },
         { "21-30", "TwentyOneToThirty" },
@@ -256,6 +258,44 @@ public class CsvParsingService : ICsvParsingService
         for (int i = 0; i < headers.Length; i++)
         {
             var header = headers[i].Trim();
+            
+            // Special handling for the specific CSV format where winning numbers are "Winning Number 1,2,3,4,5,6"
+            if (header == "Winning Number 1")
+            {
+                mappings["WinningNumber1"] = i;
+                _logger.LogDebug("Mapped header '{Header}' to property 'WinningNumber1' at index {Index}", header, i);
+                continue;
+            }
+            else if (header == "2" && i > 0 && headers[i-1] == "Winning Number 1")
+            {
+                mappings["WinningNumber2"] = i;
+                _logger.LogDebug("Mapped header '{Header}' to property 'WinningNumber2' at index {Index}", header, i);
+                continue;
+            }
+            else if (header == "3" && i > 1 && headers[i-2] == "Winning Number 1")
+            {
+                mappings["WinningNumber3"] = i;
+                _logger.LogDebug("Mapped header '{Header}' to property 'WinningNumber3' at index {Index}", header, i);
+                continue;
+            }
+            else if (header == "4" && i > 2 && headers[i-3] == "Winning Number 1")
+            {
+                mappings["WinningNumber4"] = i;
+                _logger.LogDebug("Mapped header '{Header}' to property 'WinningNumber4' at index {Index}", header, i);
+                continue;
+            }
+            else if (header == "5" && i > 3 && headers[i-4] == "Winning Number 1")
+            {
+                mappings["WinningNumber5"] = i;
+                _logger.LogDebug("Mapped header '{Header}' to property 'WinningNumber5' at index {Index}", header, i);
+                continue;
+            }
+            else if (header == "6" && i > 4 && headers[i-5] == "Winning Number 1")
+            {
+                mappings["WinningNumber6"] = i;
+                _logger.LogDebug("Mapped header '{Header}' to property 'WinningNumber6' at index {Index}", header, i);
+                continue;
+            }
             
             // Try direct mapping first
             if (HeaderMappings.ContainsKey(header))

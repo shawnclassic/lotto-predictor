@@ -23,9 +23,7 @@
         </div>
       </div>
       
-      <section id="upload" class="upload-section">
-        <FileUpload @uploadSuccess="handleUploadSuccess" @uploadError="handleUploadError" />
-      </section>
+
       
       <section class="latest-section">
         <LatestDraw ref="latestDrawRef" @drawLoaded="handleDrawLoaded" />
@@ -37,7 +35,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import FileUpload from '@/components/FileUpload.vue'
+
 import LatestDraw from '@/components/LatestDraw.vue'
 import { useAppStore } from '@/stores/app'
 
@@ -45,20 +43,7 @@ const route = useRoute()
 const appStore = useAppStore()
 const latestDrawRef = ref()
 
-// Handle upload success
-const handleUploadSuccess = (data: any) => {
-  console.log('Upload successful:', data)
-  
-  // Refresh latest draw after successful upload
-  if (latestDrawRef.value) {
-    latestDrawRef.value.refreshDraw()
-  }
-}
 
-// Handle upload error
-const handleUploadError = (error: { fileName: string; error: string }) => {
-  console.error('Upload error:', error)
-}
 
 // Handle draw loaded
 const handleDrawLoaded = (draw: any) => {
@@ -143,9 +128,7 @@ onMounted(() => {
   line-height: 1.5;
 }
 
-.upload-section {
-  margin-bottom: 4rem;
-}
+
 
 .latest-section {
   margin-bottom: 2rem;

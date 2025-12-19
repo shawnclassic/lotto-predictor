@@ -74,4 +74,28 @@ public class PredictionsController : ControllerBase
             return StatusCode(500, "Failed to retrieve stored predictions");
         }
     }
+    
+    /// <summary>
+    /// Get paginated stored predictions from the database
+    /// </summary>
+    /// <param name="request">Pagination parameters</param>
+    /// <returns>Paginated stored predictions</returns>
+    [HttpGet("stored/paginated")]
+    public async Task<ActionResult<PaginatedResponse<PredictionResult>>> GetStoredPredictionsPaginated([FromQuery] PredictionPaginationRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("Retrieving paginated stored predictions - Page: {Page}, PageSize: {PageSize}", 
+                request.Page, request.PageSize);
+            
+            var paginatedPredictions = await _predictionService.GetStoredPredictionsPaginatedAsync(request);
+            
+            return Ok(paginatedPredictions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve paginated stored predictions");
+            return StatusCode(500, "Failed to retrieve paginated stored predictions");
+        }
+    }
 }

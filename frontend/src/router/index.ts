@@ -18,6 +18,11 @@ const router = createRouter({
       path: '/draws',
       name: 'draws',
       component: () => import('../views/DrawsView.vue')
+    },
+    {
+      path: '/lookup',
+      name: 'lookup',
+      component: () => import('../views/LookupView.vue')
     }
   ]
 })

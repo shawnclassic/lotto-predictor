@@ -332,7 +332,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   maxCombinationSize: 6,
-  showPartialMatches: true,
+  showPartialMatches: false,
   highlightMatches: true
 })
 

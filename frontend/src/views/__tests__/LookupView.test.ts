@@ -236,7 +236,7 @@ describe('LookupView', () => {
 
     const combinationSearch = wrapper.findComponent(CombinationSearch)
     expect(combinationSearch.props('maxCombinationSize')).toBe(6)
-    expect(combinationSearch.props('showPartialMatches')).toBe(true)
+    expect(combinationSearch.props('showPartialMatches')).toBe(false)
     expect(combinationSearch.props('highlightMatches')).toBe(true)
   })
 

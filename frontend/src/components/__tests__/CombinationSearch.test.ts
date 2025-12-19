@@ -138,7 +138,7 @@ describe('CombinationSearch', () => {
     
     expect(LookupService.searchCombination).toHaveBeenCalledWith({
       combination: [1, 15, 23, 35],
-      includePartialMatches: true,
+      includePartialMatches: false,
       minimumMatches: 2
     })
   })
@@ -279,7 +279,7 @@ describe('CombinationSearch', () => {
     expect(wrapper.vm.combinationInput).toBe('')
     expect(wrapper.vm.startDate).toBe('')
     expect(wrapper.vm.endDate).toBe('')
-    expect(wrapper.vm.includePartialMatches).toBe(true) // Reset to default
+    expect(wrapper.vm.includePartialMatches).toBe(false) // Reset to default
     expect(wrapper.vm.minimumMatches).toBe(2) // Reset to default
     expect(wrapper.vm.searchResult).toBeNull()
     expect(wrapper.vm.hasSearched).toBe(false)
@@ -328,7 +328,7 @@ describe('CombinationSearch', () => {
     
     expect(LookupService.searchCombination).toHaveBeenCalledWith({
       combination: [1, 15, 23, 35],
-      includePartialMatches: true,
+      includePartialMatches: false,
       minimumMatches: 2,
       startDate: '2023-01-01',
       endDate: '2023-12-31'

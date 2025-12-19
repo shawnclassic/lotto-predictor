@@ -34,7 +34,6 @@
       <div v-if="activeTab === 'combinations'" class="tab-panel">
         <CombinationSearch
           :max-combination-size="6"
-          :show-partial-matches="true"
           :highlight-matches="true"
         />
       </div>
@@ -124,7 +123,7 @@ const router = useRouter()
 const appStore = useAppStore()
 
 // Reactive state
-const activeTab = ref<'numbers' | 'combinations'>('numbers')
+const activeTab = ref<'numbers' | 'combinations'>('combinations')
 const initialNumbers = ref<number[]>([])
 
 // Initialize from route params

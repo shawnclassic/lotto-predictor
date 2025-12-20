@@ -14,21 +14,25 @@ public class LottoImportService : ILottoImportService
 {
     private readonly LottoDbContext _context;
     private readonly ICsvParsingService _csvParsingService;
+    private readonly IPredictionScoreUpdateService _scoreUpdateService;
     private readonly ILogger<LottoImportService> _logger;
 
     public LottoImportService(
         LottoDbContext context,
         ICsvParsingService csvParsingService,
+        IPredictionScoreUpdateService scoreUpdateService,
         ILogger<LottoImportService> logger)
     {
         _context = context;
         _csvParsingService = csvParsingService;
+        _scoreUpdateService = scoreUpdateService;
         _logger = logger;
     }
 
     public async Task<ImportResult> ImportAsync(Stream csvStream)
     {
         var result = new ImportResult();
+        var importedDraws = new List<LottoDraw>();
         
         try
         {
@@ -68,7 +72,34 @@ public class LottoImportService : ILottoImportService
 
             foreach (var batch in batches)
             {
-                await ProcessBatch(batch, existingDrawNumbers, result);
+                var batchImportedDraws = await ProcessBatch(batch, existingDrawNumbers, result);
+                importedDraws.AddRange(batchImportedDraws);
+            }
+
+            // Trigger prediction score updates for newly imported draws
+            if (importedDraws.Any())
+            {
+                _logger.LogInformation("Triggering prediction score updates for {Count} newly imported draws", 
+                    importedDraws.Count);
+                
+                try
+                {
+                    var scoreUpdateResult = await _scoreUpdateService.UpdateScoresAfterDrawImportAsync(importedDraws);
+                    
+                    _logger.LogInformation("Score update completed: {Processed} predictions processed, {Updated} updated",
+                        scoreUpdateResult.TotalPredictionsProcessed, scoreUpdateResult.PredictionsUpdated);
+                    
+                    // Add score update info to import result
+                    if (scoreUpdateResult.Errors.Any())
+                    {
+                        result.Errors.AddRange(scoreUpdateResult.Errors.Select(e => $"Score Update: {e}"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during prediction score updates after import");
+                    result.Errors.Add($"Import successful but score updates failed: {ex.Message}");
+                }
             }
 
             _logger.LogInformation("Import completed. Added: {Added}, Skipped: {Skipped}, Errors: {Errors}", 
@@ -83,12 +114,13 @@ public class LottoImportService : ILottoImportService
         return result;
     }
 
-    private async Task ProcessBatch(
+    private async Task<List<LottoDraw>> ProcessBatch(
         List<LottoDraw> batch, 
         HashSet<int> existingDrawNumbers, 
         ImportResult result)
     {
         var drawsToAdd = new List<LottoDraw>();
+        var importedDraws = new List<LottoDraw>();
 
         foreach (var draw in batch)
         {
@@ -131,6 +163,7 @@ public class LottoImportService : ILottoImportService
                 await _context.SaveChangesAsync();
                 
                 result.RecordsAdded += drawsToAdd.Count;
+                importedDraws.AddRange(drawsToAdd);
                 
                 // Update existing draw numbers set to prevent duplicates in subsequent batches
                 foreach (var draw in drawsToAdd)
@@ -147,6 +180,8 @@ public class LottoImportService : ILottoImportService
                 result.RecordsSkipped += drawsToAdd.Count;
             }
         }
+
+        return importedDraws;
     }
 
     private bool ValidateLottoDraw(LottoDraw draw, ImportResult result)

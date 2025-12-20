@@ -21,6 +21,7 @@ public class LottoDbContext : DbContext
     public DbSet<TrainingRun> TrainingRuns { get; set; } = null!;
     public DbSet<ModelVersion> ModelVersions { get; set; } = null!;
     public DbSet<PredictionAccuracy> PredictionAccuracies { get; set; } = null!;
+    public DbSet<PredictionScoreHistory> PredictionScoreHistories { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,6 +85,34 @@ public class LottoDbContext : DbContext
             // Create composite index for number queries
             entity.HasIndex(e => new { e.Number1, e.Number2, e.Number3, e.Number4, e.Number5, e.Number6 })
                   .HasDatabaseName("IX_Predictions_Numbers");
+        });
+        
+        // Configure PredictionScoreHistory entity
+        modelBuilder.Entity<PredictionScoreHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Configure relationships
+            entity.HasOne(e => e.Prediction)
+                  .WithMany()
+                  .HasForeignKey(e => e.PredictionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+                  
+            entity.HasOne(e => e.TriggeringDraw)
+                  .WithMany()
+                  .HasForeignKey(e => e.TriggeringDrawId)
+                  .HasPrincipalKey(d => d.Draw)
+                  .OnDelete(DeleteBehavior.Restrict);
+            
+            // Create indexes for common queries
+            entity.HasIndex(e => e.PredictionId)
+                  .HasDatabaseName("IX_PredictionScoreHistory_PredictionId");
+                  
+            entity.HasIndex(e => e.UpdatedAt)
+                  .HasDatabaseName("IX_PredictionScoreHistory_UpdatedAt");
+                  
+            entity.HasIndex(e => e.TriggeringDrawId)
+                  .HasDatabaseName("IX_PredictionScoreHistory_TriggeringDrawId");
         });
         
         // Configure ExternalServiceCallLog entity

@@ -42,6 +42,10 @@ public class Prediction
     
     public double? Score { get; set; }
     
+    public double? UpdatedScore { get; set; }
+    
+    public DateTime? LastScoreUpdate { get; set; }
+    
     public double? ConfidenceScore { get; set; }
     
     [Column(TypeName = "text")]

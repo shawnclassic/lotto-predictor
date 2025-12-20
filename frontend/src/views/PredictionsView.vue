@@ -38,14 +38,16 @@
               <th>#</th>
               <th>Numbers</th>
               <th>Source</th>
-              <th>Score</th>
+              <th>Original Score</th>
+              <th>Updated Score</th>
               <th>Created</th>
               <th v-if="showTargetDate">Target Draw</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(prediction, index) in displayedPredictions" :key="prediction.id || index" class="prediction-row">
-              <td>{{ getDisplayIndex(index) }}</td>
+              <td>{{ getDisplayIndex(index)+1 }}</td>
               <td class="numbers-cell">
                 <span v-for="number in prediction.numbers" :key="number" class="number-ball">
                   {{ number }}
@@ -53,9 +55,26 @@
               </td>
               <td class="source-cell">{{ prediction.source }}</td>
               <td class="score-cell">{{ prediction.score?.toFixed(2) || 'N/A' }}</td>
+              <td class="score-cell">
+                <span v-if="prediction.hasScoreUpdates" class="updated-score">
+                  {{ prediction.updatedScore?.toFixed(2) || 'N/A' }}
+                  <span class="score-badge">Updated</span>
+                </span>
+                <span v-else class="no-update">-</span>
+              </td>
               <td class="date-cell">{{ formatDate(prediction.createdAt) }}</td>
               <td v-if="showTargetDate" class="date-cell">
                 {{ prediction.targetDrawDate ? formatDate(prediction.targetDrawDate) : 'N/A' }}
+              </td>
+              <td class="actions-cell">
+                <button 
+                  v-if="prediction.id && prediction.hasScoreUpdates" 
+                  @click="viewScoreHistory(prediction.id)"
+                  class="history-button"
+                  title="View score history"
+                >
+                  📊 History
+                </button>
               </td>
             </tr>
           </tbody>
@@ -126,6 +145,49 @@
         <p>Generating predictions...</p>
       </div>
     </div>
+
+    <!-- Score History Modal -->
+    <div v-if="scoreHistoryModal" class="modal-overlay" @click="closeScoreHistory">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>Score History - Prediction #{{ selectedPredictionId }}</h3>
+          <button @click="closeScoreHistory" class="close-button">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div v-if="scoreHistory.length === 0" class="no-history">
+            <p>No score updates found for this prediction.</p>
+          </div>
+          
+          <div v-else class="history-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date Updated</th>
+                  <th>Original Score</th>
+                  <th>Updated Score</th>
+                  <th>Triggering Draw</th>
+                  <th>Exact Matches</th>
+                  <th>Overall Accuracy</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="history in scoreHistory" :key="history.id">
+                  <td>{{ formatDate(history.updatedAt) }}</td>
+                  <td>{{ history.originalScore.toFixed(3) }}</td>
+                  <td>{{ history.updatedScore.toFixed(3) }}</td>
+                  <td>{{ history.triggeringDrawId }}</td>
+                  <td>{{ history.exactMatches }}/6</td>
+                  <td>{{ (history.overallAccuracy * 100).toFixed(1) }}%</td>
+                  <td class="reason-cell">{{ history.updateReason }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -139,6 +201,9 @@ interface PredictionResult {
   numbers: number[]
   source: string
   score?: number
+  updatedScore?: number
+  lastScoreUpdate?: string
+  hasScoreUpdates?: boolean
   createdAt: string
   targetDrawDate?: string
   confidenceScore?: number
@@ -311,6 +376,33 @@ const goToPage = (page: number) => {
   }
 }
 
+// Score history functionality
+const scoreHistoryModal = ref(false)
+const scoreHistory = ref<any[]>([])
+const selectedPredictionId = ref<number | null>(null)
+
+const viewScoreHistory = async (predictionId: number) => {
+  try {
+    selectedPredictionId.value = predictionId
+    const response = await api.get(`/prediction-score/${predictionId}/history`)
+    scoreHistory.value = response.data
+    scoreHistoryModal.value = true
+  } catch (error: any) {
+    appStore.addNotification({
+      type: 'error',
+      title: 'Failed to Load History',
+      message: 'Could not load score history for this prediction'
+    })
+    console.error('Failed to load score history:', error)
+  }
+}
+
+const closeScoreHistory = () => {
+  scoreHistoryModal.value = false
+  scoreHistory.value = []
+  selectedPredictionId.value = null
+}
+
 // Helper functions
 const getDisplayIndex = (index: number): number => {
   if (paginatedMode.value && paginationData.value) {
@@ -346,7 +438,7 @@ onMounted(() => {
 <style scoped>
 .predictions {
   padding: 2rem;
-  max-width: 1000px;
+  max-width: 1300px;
   margin: 0 auto;
 }
 
@@ -615,5 +707,142 @@ th {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Score Update Styles */
+.updated-score {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-badge {
+  background: #42b883;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.no-update {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.actions-cell {
+  text-align: center;
+}
+
+.history-button {
+  background: #f39c12;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.3s ease;
+}
+
+.history-button:hover {
+  background: #e67e22;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: var(--color-background);
+  border-radius: 8px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-soft);
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--color-heading);
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text);
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.close-button:hover {
+  color: var(--color-heading);
+}
+
+.modal-body {
+  padding: 1.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.no-history {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text);
+}
+
+.history-table {
+  overflow-x: auto;
+}
+
+.history-table table {
+  min-width: 800px;
+}
+
+.reason-cell {
+  max-width: 200px;
+  word-wrap: break-word;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    max-width: 95vw;
+    margin: 0.5rem;
+  }
+  
+  .history-table table {
+    font-size: 0.8rem;
+  }
+  
+  th, td {
+    padding: 0.5rem;
+  }
+  
+  .reason-cell {
+    max-width: 150px;
+  }
 }
 </style>

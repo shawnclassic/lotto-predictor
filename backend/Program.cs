@@ -162,6 +162,10 @@ builder.Services.AddScoped<IPredictionService, PredictionService>();
 // Register training data service for comprehensive data preservation
 builder.Services.AddScoped<ITrainingDataService, TrainingDataService>();
 
+// Register accuracy analysis and score update services
+builder.Services.AddScoped<IAccuracyAnalysisService, AccuracyAnalysisService>();
+builder.Services.AddScoped<IPredictionScoreUpdateService, PredictionScoreUpdateService>();
+
 // Configure CORS for frontend integration
 builder.Services.AddCors(options =>
 {

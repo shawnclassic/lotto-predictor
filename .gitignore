@@ -285,3 +285,6 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Data files
+Powerball_NZ.csv

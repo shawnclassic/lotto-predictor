@@ -120,6 +120,8 @@ builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(provid
 
 // Register lookup and navigation services
 builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddScoped<ICacheInvalidationService, CacheInvalidationService>();
+builder.Services.AddScoped<ICacheWarmupService, CacheWarmupService>();
 builder.Services.AddScoped<IPerformanceMonitoringService, PerformanceMonitoringService>();
 builder.Services.AddScoped<INumberLookupService, NumberLookupService>();
 builder.Services.AddScoped<IFrequencyAnalysisService, FrequencyAnalysisService>();
@@ -165,6 +167,9 @@ builder.Services.AddScoped<ITrainingDataService, TrainingDataService>();
 // Register accuracy analysis and score update services
 builder.Services.AddScoped<IAccuracyAnalysisService, AccuracyAnalysisService>();
 builder.Services.AddScoped<IPredictionScoreUpdateService, PredictionScoreUpdateService>();
+
+// Register prediction matching service
+builder.Services.AddScoped<IPredictionMatchingService, PredictionMatchingService>();
 
 // Configure CORS for frontend integration
 builder.Services.AddCors(options =>

@@ -74,6 +74,14 @@ public class LottoController : ControllerBase
             _logger.LogInformation("CSV import completed. Added: {Added}, Skipped: {Skipped}, Errors: {ErrorCount}", 
                 result.RecordsAdded, result.RecordsSkipped, result.Errors.Count);
 
+            // TODO: Add cache invalidation after fixing dependency injection issue
+            // if (result.RecordsAdded > 0)
+            // {
+            //     _logger.LogInformation("Invalidating cache due to {RecordsAdded} new draws imported", result.RecordsAdded);
+            //     await _cacheInvalidationService.InvalidateAllAsync();
+            //     _logger.LogInformation("Cache invalidation completed");
+            // }
+
             // Return appropriate status based on results
             if (result.HasErrors && result.RecordsAdded == 0)
             {

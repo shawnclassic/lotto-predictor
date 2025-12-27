@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PredictLottoNZ.Data;
@@ -11,9 +12,11 @@ using PredictLottoNZ.Data;
 namespace PredictLottoNZ.Migrations
 {
     [DbContext(typeof(LottoDbContext))]
-    partial class LottoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251225035521_AddPowerballAndMatchingFields")]
+    partial class AddPowerballAndMatchingFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -47,7 +47,7 @@
           </thead>
           <tbody>
             <tr v-for="(prediction, index) in displayedPredictions" :key="prediction.id || index" class="prediction-row">
-              <td>{{ getDisplayIndex(index)+1 }}</td>
+              <td>{{ getDisplayIndex(index) }}</td>
               <td class="numbers-cell">
                 <span v-for="number in prediction.numbers" :key="number" class="number-ball">
                   {{ number }}
@@ -406,7 +406,7 @@ const closeScoreHistory = () => {
 // Helper functions
 const getDisplayIndex = (index: number): number => {
   if (paginatedMode.value && paginationData.value) {
-    return paginationData.value.firstItemIndex + index - 1
+    return paginationData.value.firstItemIndex + index
   }
   return index + 1
 }

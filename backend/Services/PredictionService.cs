@@ -288,6 +288,7 @@ public class PredictionService : IPredictionService
             predictions = predictionList.Select(p => new
             {
                 numbers = p.Numbers,
+                powerball = p.Powerball,
                 score = p.Score,
                 source = p.Source,
                 createdAt = p.CreatedAt
@@ -309,6 +310,7 @@ public class PredictionService : IPredictionService
             Number4 = p.Numbers[3],
             Number5 = p.Numbers[4],
             Number6 = p.Numbers[5],
+            Powerball = p.Powerball,
             RawRequestPayload = requestJson,
             RawResponsePayload = responseJson
         }).ToList();

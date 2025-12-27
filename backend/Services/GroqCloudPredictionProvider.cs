@@ -141,14 +141,14 @@ public class GroqCloudPredictionProvider : IPredictionProvider
     {
         var systemPrompt = @"You are a professional statistician specializing in probability theory. You analyze historical lottery data to explain frequency, variance, and randomness.
 
-Your task is to analyze New Zealand Lotto data and generate lottery predictions. The lottery uses 6 numbers from 1-40.
+Your task is to analyze New Zealand Lotto data and generate lottery predictions. The lottery uses 6 numbers from 1-40 plus a Powerball number from 1-10.
 
 Guidelines:
 - Use statistical analysis of historical patterns
 - Consider frequency distributions and trends
 - Apply probability theory principles
 - Provide confidence scores based on statistical evidence
-- Each prediction must contain exactly 6 unique numbers between 1-40
+- Each prediction must contain exactly 6 unique numbers between 1-40 plus 1 Powerball number between 1-10
 - Format response as valid JSON only";
 
         var historicalDataJson = JsonSerializer.Serialize(historicalData.Take(10), _jsonOptions);
@@ -160,16 +160,17 @@ Historical Data (last 10 draws):
 
 Requirements:
 - Generate exactly {count} predictions
-- Each prediction must have exactly 6 unique numbers between 1-40
+- Each prediction must have exactly 6 unique numbers between 1-40 plus 1 Powerball number between 1-10
 - Include confidence score (0.0-1.0) for each prediction
 - Provide brief statistical reasoning for each prediction
-- Consider frequency patterns, gaps, and statistical trends
+- Consider frequency patterns, gaps, and statistical trends for both main numbers and Powerball
 
 Response format (JSON only):
 {{
     ""predictions"": [
         {{
             ""numbers"": [1, 2, 3, 4, 5, 6],
+            ""powerball"": 7,
             ""confidence"": 0.85,
             ""reasoning"": ""Statistical explanation""
         }}
@@ -296,10 +297,19 @@ Response format (JSON only):
                     continue;
                 }
 
+                // Validate Powerball
+                var powerball = prediction.Powerball ?? new Random().Next(1, 11); // Default random if not provided
+                if (powerball < 1 || powerball > 10)
+                {
+                    _logger.LogWarning("Invalid Powerball: must be between 1-10, using random value");
+                    powerball = new Random().Next(1, 11);
+                }
+
                 // Create prediction result
                 var result = new PredictionResult
                 {
                     Numbers = prediction.Numbers.OrderBy(n => n).ToArray(),
+                    Powerball = powerball,
                     Score = Math.Max(0.0, Math.Min(1.0, prediction.Confidence)), // Clamp between 0-1
                     Source = $"GroqCloud-{_options.Model}",
                     CreatedAt = timestamp,
@@ -354,6 +364,7 @@ Response format (JSON only):
     private class GroqCloudPrediction
     {
         public int[]? Numbers { get; set; }
+        public int? Powerball { get; set; }
         public double Confidence { get; set; }
         public string? Reasoning { get; set; }
     }

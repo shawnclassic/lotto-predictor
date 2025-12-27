@@ -15,17 +15,20 @@ public class LottoImportService : ILottoImportService
     private readonly LottoDbContext _context;
     private readonly ICsvParsingService _csvParsingService;
     private readonly IPredictionScoreUpdateService _scoreUpdateService;
+    private readonly IPredictionMatchingService _predictionMatchingService;
     private readonly ILogger<LottoImportService> _logger;
 
     public LottoImportService(
         LottoDbContext context,
         ICsvParsingService csvParsingService,
         IPredictionScoreUpdateService scoreUpdateService,
+        IPredictionMatchingService predictionMatchingService,
         ILogger<LottoImportService> logger)
     {
         _context = context;
         _csvParsingService = csvParsingService;
         _scoreUpdateService = scoreUpdateService;
+        _predictionMatchingService = predictionMatchingService;
         _logger = logger;
     }
 
@@ -76,12 +79,33 @@ public class LottoImportService : ILottoImportService
                 importedDraws.AddRange(batchImportedDraws);
             }
 
-            // Trigger prediction score updates for newly imported draws
+            // Trigger prediction score updates and matching for newly imported draws
             if (importedDraws.Any())
             {
-                _logger.LogInformation("Triggering prediction score updates for {Count} newly imported draws", 
+                _logger.LogInformation("Processing {Count} newly imported draws for prediction updates", 
                     importedDraws.Count);
                 
+                // First, check for prediction matches
+                try
+                {
+                    var matchingResult = await _predictionMatchingService.CheckAndUpdateMatchesAsync(importedDraws);
+                    
+                    _logger.LogInformation("Prediction matching completed: {Checked} predictions checked, {Matches} matches found",
+                        matchingResult.TotalPredictionsChecked, matchingResult.MatchesFound);
+                    
+                    // Add matching info to import result
+                    if (matchingResult.Errors.Any())
+                    {
+                        result.Errors.AddRange(matchingResult.Errors.Select(e => $"Prediction Matching: {e}"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during prediction matching after import");
+                    result.Errors.Add($"Import successful but prediction matching failed: {ex.Message}");
+                }
+                
+                // Then, trigger prediction score updates
                 try
                 {
                     var scoreUpdateResult = await _scoreUpdateService.UpdateScoresAfterDrawImportAsync(importedDraws);
@@ -100,6 +124,19 @@ public class LottoImportService : ILottoImportService
                     _logger.LogError(ex, "Error during prediction score updates after import");
                     result.Errors.Add($"Import successful but score updates failed: {ex.Message}");
                 }
+                
+                // TODO: Add cache invalidation here after fixing dependency injection issue
+                // try
+                // {
+                //     _logger.LogInformation("Invalidating cache due to {Count} new draws imported", importedDraws.Count);
+                //     await _cacheInvalidationService.InvalidateAllAsync();
+                //     _logger.LogInformation("Cache invalidation completed successfully");
+                // }
+                // catch (Exception ex)
+                // {
+                //     _logger.LogError(ex, "Error during cache invalidation after import");
+                //     result.Errors.Add($"Import successful but cache invalidation failed: {ex.Message}");
+                // }
             }
 
             _logger.LogInformation("Import completed. Added: {Added}, Skipped: {Skipped}, Errors: {Errors}", 

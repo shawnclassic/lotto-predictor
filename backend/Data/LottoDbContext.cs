@@ -82,9 +82,23 @@ public class LottoDbContext : DbContext
             entity.HasIndex(e => e.Source)
                   .HasDatabaseName("IX_Predictions_Source");
                   
-            // Create composite index for number queries
-            entity.HasIndex(e => new { e.Number1, e.Number2, e.Number3, e.Number4, e.Number5, e.Number6 })
-                  .HasDatabaseName("IX_Predictions_Numbers");
+            // Create composite index for number queries (including Powerball)
+            entity.HasIndex(e => new { e.Number1, e.Number2, e.Number3, e.Number4, e.Number5, e.Number6, e.Powerball })
+                  .HasDatabaseName("IX_Predictions_Numbers_Powerball");
+                  
+            // Create index for matched predictions
+            entity.HasIndex(e => e.IsMatched)
+                  .HasDatabaseName("IX_Predictions_IsMatched");
+                  
+            entity.HasIndex(e => e.MatchedDrawId)
+                  .HasDatabaseName("IX_Predictions_MatchedDrawId");
+                  
+            // Configure relationship with LottoDraw for matched predictions
+            entity.HasOne<LottoDraw>()
+                  .WithMany()
+                  .HasForeignKey(e => e.MatchedDrawId)
+                  .HasPrincipalKey(d => d.Draw)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
         
         // Configure PredictionScoreHistory entity

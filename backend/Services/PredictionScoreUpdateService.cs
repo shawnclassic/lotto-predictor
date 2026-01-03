@@ -145,6 +145,14 @@ public class PredictionScoreUpdateService : IPredictionScoreUpdateService
             .ToListAsync();
     }
 
+    public async Task<bool> HasScoreHistoryAsync(int predictionId)
+    {
+        _logger.LogDebug("Checking if prediction {PredictionId} has score history", predictionId);
+
+        return await _context.PredictionScoreHistories
+            .AnyAsync(psh => psh.PredictionId == predictionId);
+    }
+
     public async Task<Dictionary<int, PredictionScoreInfo>> GetLatestScoresAsync(IEnumerable<int> predictionIds)
     {
         _logger.LogDebug("Retrieving latest scores for {Count} predictions", predictionIds.Count());
@@ -203,10 +211,12 @@ public class PredictionScoreUpdateService : IPredictionScoreUpdateService
         var accuracyAdjustment = accuracyResult.OverallAccuracy * accuracyWeight;
         var exactMatchAdjustment = (accuracyResult.ExactMatches / 6.0) * exactMatchWeight;
         
-        var totalAdjustment = (accuracyAdjustment + exactMatchAdjustment) * learningRate;
+        // Calculate target score based on current performance
+        var targetScore = accuracyAdjustment + exactMatchAdjustment;
         
-        // Apply adjustment to original score
-        var newScore = originalScore + (totalAdjustment - originalScore * learningRate);
+        // Use exponential moving average to update score
+        // This prevents the consistent downward trend by properly weighting new vs old information
+        var newScore = originalScore * (1 - learningRate) + targetScore * learningRate;
         
         // Ensure score stays within bounds [0, 1]
         return Math.Max(0.0, Math.Min(1.0, newScore));

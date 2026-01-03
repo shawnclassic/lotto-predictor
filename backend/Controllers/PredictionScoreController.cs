@@ -20,6 +20,31 @@ public class PredictionScoreController : ControllerBase
     }
 
     /// <summary>
+    /// Check if a prediction has score history
+    /// </summary>
+    /// <param name="predictionId">Prediction ID</param>
+    /// <returns>True if prediction has score history</returns>
+    [HttpGet("{predictionId:int}/has-history")]
+    public async Task<ActionResult<bool>> HasScoreHistory(int predictionId)
+    {
+        try
+        {
+            if (predictionId <= 0)
+            {
+                return BadRequest("Prediction ID must be a positive integer");
+            }
+
+            var hasHistory = await _scoreUpdateService.HasScoreHistoryAsync(predictionId);
+            return Ok(hasHistory);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking score history for prediction {PredictionId}", predictionId);
+            return StatusCode(500, "Failed to check score history");
+        }
+    }
+
+    /// <summary>
     /// Get score history for a specific prediction
     /// </summary>
     /// <param name="predictionId">Prediction ID</param>

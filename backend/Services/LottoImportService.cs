@@ -16,6 +16,7 @@ public class LottoImportService : ILottoImportService
     private readonly ICsvParsingService _csvParsingService;
     private readonly IPredictionScoreUpdateService _scoreUpdateService;
     private readonly IPredictionMatchingService _predictionMatchingService;
+    private readonly IPredictionService _predictionService;
     private readonly ILogger<LottoImportService> _logger;
 
     public LottoImportService(
@@ -23,12 +24,14 @@ public class LottoImportService : ILottoImportService
         ICsvParsingService csvParsingService,
         IPredictionScoreUpdateService scoreUpdateService,
         IPredictionMatchingService predictionMatchingService,
+        IPredictionService predictionService,
         ILogger<LottoImportService> logger)
     {
         _context = context;
         _csvParsingService = csvParsingService;
         _scoreUpdateService = scoreUpdateService;
         _predictionMatchingService = predictionMatchingService;
+        _predictionService = predictionService;
         _logger = logger;
     }
 
@@ -123,6 +126,34 @@ public class LottoImportService : ILottoImportService
                 {
                     _logger.LogError(ex, "Error during prediction score updates after import");
                     result.Errors.Add($"Import successful but score updates failed: {ex.Message}");
+                }
+                
+                // Generate new predictions for future draws after importing new data
+                try
+                {
+                    _logger.LogInformation("Generating new predictions after importing {Count} new draws", importedDraws.Count);
+                    
+                    // Generate a reasonable number of predictions (5-10) for the next draws
+                    const int predictionsToGenerate = 5;
+                    var newPredictions = await _predictionService.GeneratePredictionsAsync(predictionsToGenerate);
+                    var predictionsList = newPredictions.ToList();
+                    
+                    _logger.LogInformation("Successfully generated {Count} new predictions after data import", predictionsList.Count);
+                    
+                    // If we generated predictions, run score updates again to process them against the new draws
+                    if (predictionsList.Any())
+                    {
+                        _logger.LogInformation("Running score updates for newly generated predictions");
+                        var newScoreUpdateResult = await _scoreUpdateService.UpdateScoresAfterDrawImportAsync(importedDraws);
+                        
+                        _logger.LogInformation("New predictions score update completed: {Processed} predictions processed, {Updated} updated",
+                            newScoreUpdateResult.TotalPredictionsProcessed, newScoreUpdateResult.PredictionsUpdated);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error generating predictions after import - this is not critical for data import");
+                    result.Errors.Add($"Import successful but prediction generation failed: {ex.Message}");
                 }
                 
                 // TODO: Add cache invalidation here after fixing dependency injection issue

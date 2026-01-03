@@ -8,6 +8,7 @@ public interface IPredictionScoreUpdateService
     Task<PredictionScoreUpdateResult> UpdateScoresAfterDrawImportAsync(IEnumerable<LottoDraw> newDraws);
     Task<PredictionScoreUpdateResult> UpdateScoresForSingleDrawAsync(LottoDraw newDraw);
     Task<IEnumerable<PredictionScoreHistory>> GetScoreHistoryAsync(int predictionId);
+    Task<bool> HasScoreHistoryAsync(int predictionId);
     Task<Dictionary<int, PredictionScoreInfo>> GetLatestScoresAsync(IEnumerable<int> predictionIds);
 }
 

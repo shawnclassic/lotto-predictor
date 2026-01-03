@@ -27,6 +27,11 @@
             <span v-if="isLoading">Loading...</span>
             <span v-else>Browse All Stored</span>
           </button>
+          
+          <button @click="updateScores" :disabled="isLoading || isUpdatingScores" class="generate-button tertiary">
+            <span v-if="isUpdatingScores">Updating Scores...</span>
+            <span v-else>Update Scores</span>
+          </button>
         </div>
       </div>
       
@@ -37,6 +42,7 @@
             <tr>
               <th>#</th>
               <th>Numbers</th>
+              <th>Powerball</th>
               <th>Source</th>
               <th>Original Score</th>
               <th>Updated Score</th>
@@ -52,6 +58,12 @@
                 <span v-for="number in prediction.numbers" :key="number" class="number-ball">
                   {{ number }}
                 </span>
+              </td>
+              <td class="powerball-cell">
+                <span v-if="prediction.powerball !== undefined && prediction.powerball !== null" class="powerball-ball">
+                  {{ prediction.powerball }}
+                </span>
+                <span v-else class="no-powerball">-</span>
               </td>
               <td class="source-cell">{{ prediction.source }}</td>
               <td class="score-cell">{{ prediction.score?.toFixed(2) || 'N/A' }}</td>
@@ -199,6 +211,7 @@ import { useAppStore } from '@/stores/app'
 interface PredictionResult {
   id?: number
   numbers: number[]
+  powerball?: number
   source: string
   score?: number
   updatedScore?: number
@@ -227,6 +240,7 @@ const appStore = useAppStore()
 const predictionCount = ref(10)
 const predictions = ref<PredictionResult[]>([])
 const isLoading = ref(false)
+const isUpdatingScores = ref(false)
 const paginatedMode = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(50)
@@ -270,6 +284,45 @@ const generatePredictions = async () => {
     console.error('Failed to generate predictions:', error)
   } finally {
     isLoading.value = false
+    appStore.setLoading(false)
+  }
+}
+
+// Update prediction scores
+const updateScores = async () => {
+  isUpdatingScores.value = true
+  appStore.setLoading(true)
+  
+  try {
+    const response = await api.post('/predictions/update-scores?drawCount=10')
+    const result = response.data
+    
+    appStore.addNotification({
+      type: 'success',
+      title: 'Scores Updated',
+      message: `Updated ${result.predictionsUpdated} predictions, created ${result.scoreHistoryRecordsCreated} history records`
+    })
+    
+    // Reload predictions to show updated scores
+    if (predictions.value.length > 0) {
+      if (paginatedMode.value) {
+        await loadPaginatedPredictions(currentPage.value)
+      } else {
+        await loadStoredPredictions()
+      }
+    }
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to update scores'
+    
+    appStore.addNotification({
+      type: 'error',
+      title: 'Score Update Failed',
+      message: errorMessage
+    })
+    
+    console.error('Failed to update scores:', error)
+  } finally {
+    isUpdatingScores.value = false
     appStore.setLoading(false)
   }
 }
@@ -383,15 +436,40 @@ const selectedPredictionId = ref<number | null>(null)
 
 const viewScoreHistory = async (predictionId: number) => {
   try {
+    // Validate prediction ID
+    if (!predictionId || predictionId <= 0) {
+      appStore.addNotification({
+        type: 'error',
+        title: 'Invalid Prediction',
+        message: 'Cannot load history for this prediction'
+      })
+      return
+    }
+
     selectedPredictionId.value = predictionId
-    const response = await api.get(`/prediction-score/${predictionId}/history`)
+    const response = await api.get(`/predictionScore/${predictionId}/history`)
+    
+    // Check if history exists
+    if (!response.data || response.data.length === 0) {
+      appStore.addNotification({
+        type: 'info',
+        title: 'No History Available',
+        message: 'This prediction has no score update history yet'
+      })
+      return
+    }
+    
     scoreHistory.value = response.data
     scoreHistoryModal.value = true
   } catch (error: any) {
+    const errorMessage = error.response?.status === 404 
+      ? 'No score history found for this prediction'
+      : 'Could not load score history for this prediction'
+    
     appStore.addNotification({
       type: 'error',
       title: 'Failed to Load History',
-      message: 'Could not load score history for this prediction'
+      message: errorMessage
     })
     console.error('Failed to load score history:', error)
   }
@@ -420,8 +498,6 @@ const formatDate = (dateString: string): string => {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     })
   } catch {
     return 'Invalid Date'
@@ -570,8 +646,7 @@ th {
 
 .numbers-cell {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 0.1rem;
 }
 
 .number-ball {
@@ -587,9 +662,33 @@ th {
   font-size: 0.9rem;
 }
 
+.powerball-cell {
+  text-align: center;
+}
+
+.powerball-ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 0.9rem;
+  border: 2px solid #c0392b;
+}
+
+.no-powerball {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
 .source-cell {
   font-weight: 500;
   color: var(--color-text);
+  flex-wrap: wrap;
 }
 
 .score-cell {
